@@ -1,9 +1,9 @@
 from fastapi import FastAPI, Request, HTTPException
 
-from models import ToolRequest
-from registry import load_tool_registry
-from auth import get_user_roles, has_required_role
-from audit import write_audit_event
+from app.models import ToolRequest
+from app.registry import load_tool_registry
+from app.auth import get_user_roles, has_required_role
+from app.audit import write_audit_event
 
 
 app = FastAPI(
