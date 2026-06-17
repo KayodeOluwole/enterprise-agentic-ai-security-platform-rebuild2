@@ -1,16 +1,39 @@
-from typing import List, Optional
+import base64
+import json
+from typing import List
 from fastapi import Request
 
 
+def get_client_principal(request: Request) -> dict:
+    encoded_principal = request.headers.get("X-MS-CLIENT-PRINCIPAL")
+
+    if not encoded_principal:
+        return {}
+
+    decoded_bytes = base64.b64decode(encoded_principal)
+    decoded_json = decoded_bytes.decode("utf-8")
+
+    return json.loads(decoded_json)
+
+
 def get_user_roles(request: Request) -> List[str]:
-    roles_header = request.headers.get("X-MS-CLIENT-PRINCIPAL")
+    principal = get_client_principal(request)
 
-    if not roles_header:
-        return []
+    claims = principal.get("claims", [])
 
-    # App Service Easy Auth injects identity headers.
-    # In Phase 2, we will expand this into full JWT/audit inspection.
-    return []
+    roles = []
+
+    for claim in claims:
+        claim_type = claim.get("typ")
+        claim_value = claim.get("val")
+
+        if claim_type in [
+            "roles",
+            "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+        ]:
+            roles.append(claim_value)
+
+    return roles
 
 
 def has_required_role(user_roles: List[str], required_role: str) -> bool:
