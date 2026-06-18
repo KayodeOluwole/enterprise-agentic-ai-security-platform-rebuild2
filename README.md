@@ -542,6 +542,9 @@ Integrate:
 * ServiceNow
 
 ---
+CI/CD pipeline configuration stored in:
+
+.github/workflows/main_app-mcp-agentic-security-prod.yml
 
 # Author
 
