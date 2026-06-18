@@ -67,15 +67,20 @@ def authorize_tool(request_body: ToolRequest, request: Request):
 
     required_role = requested_tool["requiredRole"]
 
-    for role in user_roles:
-        if has_required_role(user_roles, required_role):
-            audit = write_audit_event(
-                event_type="MCP_TOOL_AUTHORIZATION",
-                tool_name=request_body.tool_name,
-                role=role,
-                authorized=True,
-                reason="Required role matched"
-            )
+    if not any(has_required_role(user_roles, required_role) for role in user_roles):
+        audit = write_audit_event(
+            event_type="MCP_TOOL_AUTHORIZATION",
+            tool_name=request_body.tool_name,
+            role=",".join(user_roles) if user_roles else "none",
+            authorized=False,
+            reason=f"Missing required role: {required_role}"
+        )
+
+        raise HTTPException(
+            status_code=403,
+            detail=audit
+        )
+
     if requested_tool.get("approvalRequired", False):
         audit = write_audit_event(
             event_type="MCP_TOOL_APPROVAL_REQUIRED",
@@ -89,7 +94,16 @@ def authorize_tool(request_body: ToolRequest, request: Request):
             status_code=202,
             detail=audit
         )
-            return audit
+
+    audit = write_audit_event(
+        event_type="MCP_TOOL_AUTHORIZATION",
+        tool_name=request_body.tool_name,
+        role=",".join(user_roles),
+        authorized=True,
+        reason="Required role matched and no approval required"
+    )
+
+    return audit
 
     audit = write_audit_event(
         event_type="MCP_TOOL_AUTHORIZATION",
