@@ -1,1 +1,25 @@
 
+```mermaid
+flowchart TD
+
+A[AI Agent]
+--> B[MCP Authorization Server]
+
+B --> C[JWT Validation]
+
+B --> D[Tool Registry]
+
+B --> E[Role Validation]
+
+B --> F[Risk Classification]
+
+B --> G[Approval Workflow]
+
+B --> H[Audit Logging]
+
+H --> I[Application Insights]
+
+I --> J[Log Analytics]
+
+J --> K[Microsoft Sentinel]
+```
