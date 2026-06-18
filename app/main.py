@@ -76,7 +76,19 @@ def authorize_tool(request_body: ToolRequest, request: Request):
                 authorized=True,
                 reason="Required role matched"
             )
+    if requested_tool.get("approvalRequired", False):
+        audit = write_audit_event(
+            event_type="MCP_TOOL_APPROVAL_REQUIRED",
+            tool_name=request_body.tool_name,
+            role=",".join(user_roles) if user_roles else "none",
+            authorized=False,
+            reason="Approval required before execution"
+        )
 
+        raise HTTPException(
+            status_code=202,
+            detail=audit
+        )
             return audit
 
     audit = write_audit_event(
